@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique
+  role        Role 
+  password    String?
+  updateDate  DateTime? @updatedAt
+  createdDate DateTime  @default(now())
+  customer    Customer?
+  driver      Driver?
+  seller      Seller?
+}
+
+model Customer {
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
+  cart     Cart?
+  user     User      @relation(fields: [userId], references: [id])
+  orders   Order[]
+  payments Payment[]
+}
+
+model Seller {
+  id            Int        @id @default(autoincrement())
+  userId        Int        @unique
+  storeName     String
+  storeLogo     String?
+  businessEmail String?
+  hubId         Int
+  offers        Offer[]
+  products      Product[]
+  hub           Hub        @relation(fields: [hubId], references: [id])
+  user          User       @relation(fields: [userId], references: [id])
+  shipments     Shipment[]
+}
+
+model Hub {
+  id         Int         @id @default(autoincrement())
+  hubAddress String
+  hubEmail   String      @unique
+  hubName    String
+  hubPhone   String
+  manager    String
+  drivers    Driver[]
+  orderItems OrderItem[]
+  sellers    Seller[]
+  shipments  Shipment[]
+}
+
+model Driver {
+  id          Int        @id @default(autoincrement())
+  userId      Int        @unique
+  hubId       Int?
+  licenseNo   String
+  name        String
+  phone       String
+  vehicleNo   String?
+  vehicleType String?
+  hub         Hub?       @relation(fields: [hubId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+  shipments   Shipment[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  productImgs String[]
+  weight      String?
+  categories  String?
+  sku         String
+  material    String?
+  storeReview String?
+  dimensions  String?
+  keywords    String[]
+  createdById Int
+  createdAt   DateTime @default(now())
+  offers      Offer[]
+  createdBy   Seller   @relation(fields: [createdById], references: [id])
+}
+
+model Offer {
+  id         Int         @id @default(autoincrement())
+  productId  Int
+  sellerId   Int
+  price      Float
+  stock      Int
+  createdAt  DateTime    @default(now())
+  cartItems  CartItem[]
+  product    Product     @relation(fields: [productId], references: [id])
+  seller     Seller      @relation(fields: [sellerId], references: [id])
+  orderItems OrderItem[]
+}
+
+model Cart {
+  id         Int        @id @default(autoincrement())
+  customerId Int        @unique
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  items      CartItem[]
+}
+
+model CartItem {
+  id       Int   @id @default(autoincrement())
+  cartId   Int
+  offerId  Int
+  quantity Int
+  price    Float
+  subtotal Float
+  cart     Cart  @relation(fields: [cartId], references: [id])
+  offer    Offer @relation(fields: [offerId], references: [id])
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  customerId    Int
+  address       String
+  recipientName String
+  orderStatus   OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  totalAmount   Float
+  createdAt     DateTime      @default(now())
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  items         OrderItem[]
+  payments      Payment[]
+}
+
+model OrderItem {
+  id        Int       @id @default(autoincrement())
+  orderId   Int
+  offerId   Int
+  quantity  Int
+  price     Float
+  subAmount Float
+  hubId     Int?
+  hub       Hub?      @relation(fields: [hubId], references: [id])
+  offer     Offer     @relation(fields: [offerId], references: [id])
+  order     Order     @relation(fields: [orderId], references: [id])
+  shipment  Shipment?
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  customerId    Int
+  orderId       Int
+  method        String
+  paymentStatus PaymentStatus @default(UNPAID)
+  transactionId String?
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  order         Order         @relation(fields: [orderId], references: [id])
+}
+
+model Shipment {
+  id                Int            @id @default(autoincrement())
+  hubId             Int?
+  sellerId          Int?
+  driverId          Int?
+  orderItemId       Int?           @unique
+  shipmentStatus    ShipmentStatus @default(PENDING)
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  driver            Driver?        @relation(fields: [driverId], references: [id])
+  hub               Hub?           @relation(fields: [hubId], references: [id])
+  orderItem         OrderItem?     @relation(fields: [orderItemId], references: [id])
+  seller            Seller?        @relation(fields: [sellerId], references: [id])
+}
+
+enum Role {
+  CUSTOMER
+  SELLER
+  DRIVER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+  PENDING
+}
+
+enum ShipmentStatus {
+  PENDING
+  READY_TO_PICK_UP
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
