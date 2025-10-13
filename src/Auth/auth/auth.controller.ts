@@ -2,7 +2,7 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../../User/dto/user.dto';
 import { Public } from 'src/common/Decorator/public.decorator';
-import { AuthGuard } from 'src/common/Guard/JwtGurad';
+import { Auth } from 'src/common/Guard/auth.decorator';
 import { LoginDto } from '../dto/login.dto';
 @Controller('auth')
 export class AuthController {
@@ -19,7 +19,7 @@ register(@Body() dto: CreateUserDto) {
   console.log('🔥 Received register request:', dto);
   return this.AuthService.register(dto);
 }
-@UseGuards(AuthGuard) 
+@Auth() 
 @Post('update_password')
   
 updatePassword(@Body()  userInfo: {email:string,password:string}) {
