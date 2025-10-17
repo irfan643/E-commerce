@@ -8,11 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
   id          Int       @id @default(autoincrement())
   email       String    @unique
   role        Role 
-  password    String?
+  password    String
   updateDate  DateTime? @updatedAt
   createdDate DateTime  @default(now())
   customer    Customer?

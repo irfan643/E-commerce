@@ -1,33 +1,82 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
-
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from '@nestjs/cache-manager';
+import { randomUUID } from 'crypto'; 
 
 @Injectable()
 export class MailerServiceCustom {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
- async generateOtp(length = 6): Promise<string> {
-    return crypto.randomInt(10 ** (length - 1), 10 ** length).toString();
-  }
-  async sendOTP(mail:string){
-        //    const opt = await this.generateOtp
-        //    const opt= await  bcrypt.h
-    const info = await this.mailerService.sendMail({
-      to: mail,
-      subject: 'Test Email from ConnectCart',
-      text: `this is out otp dkslksldsas`,
-    });
-
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    console.log('📧 Email sent! Preview URL:', previewUrl);
-    return { message: 'Email sent successfully!', previewUrl };
+  async generateOtp() {
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const opthash = await bcrypt.hash(otp, 10);
+    const verifyToken = randomUUID();
     
-  
+    // Store in cache with proper error handling
+    try {
+      await this.cacheManager.set(`otp_${verifyToken}`, opthash,); // 300 seconds in ms
+      // const immediate = await this.cacheManager.get<string>(`otp_${verifyToken}`);
+      // console.log('generateOtp: stored otp hash exists?', !!immediate);
+    } catch (error) {
+      // console.error('Cache set error:', error);
+      throw new Error('Failed to store OTP in cache');
+    }
+        
+    return { otp, verifyToken };
   }
 
- 
-    
+  async sendOTP(mail: string) {
+    try {
+      const { otp, verifyToken } = await this.generateOtp();
+      
+      await this.mailerService.sendMail({
+        to: mail,
+        subject: 'Test Email from ConnectCart',
+        text: `This is your OTP: ${otp}`,
+      });
+      
+      // console.log("Email sent successfully");
+      
+      return {
+        verifyToken, // 👈 important — this goes to frontend
+      };
+    } catch (error) {
+      // console.error('Error sending OTP:', error);
+      throw new Error('Failed to send OTP');
+    }
+  }
+
+  async verifyOtp(token: string, otp: string) {
+    try {
+      // Get the hashed OTP from cache
+      const hashOpt = await this.cacheManager.get<string>(`otp_${token}`);
+      // console.log('Retrieved hash from cache:', !!hashOpt);
+           
+      if (!hashOpt) {
+        return { status: 'error', message: 'OTP expired or not found' };
+      }
+
+      // Compare entered OTP with stored hashed one
+      const isMatch = await bcrypt.compare(otp, hashOpt);
+
+      if (!isMatch) {
+        return { status: 'error', message: 'Invalid OTP' };
+      }
+
+      // Delete OTP after successful verification
+      await this.cacheManager.del(`otp_${token}`);
+
+      return { status: 'success', message: 'OTP verified successfully' };
+    } catch (error) {
+      // console.error('Error verifying OTP:', error);
+      return { status: 'error', message: 'Internal server error' };
+    }
+  }
 }
