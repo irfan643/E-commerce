@@ -1,0 +1,81 @@
+/* For information on how to create your own theme, please see:
+http://ionicframework.com/docs/theming/ */
+@font-face {
+    font-family: 'Manrope';
+     src: url('/asset/font/Manrope-ExtraLight.ttf') format('truetype');
+     font-weight: 100 900; /* if using variable font */
+  font-display: swap;
+    }
+@theme {
+    --font-Manrope: 'Manrope', sans-serif;
+}
+ :root {
+      /* --ion-font-family: 'Manrope', sans-serif;  */
+
+  --primary-color: #634F96 ;
+    }
+ @import "tailwindcss";
+    body {
+ /* 👈 your chosen color */
+}
+  .btn{
+
+     --padding-top:0.9rem;
+    --padding-bottom: 0.9rem;
+    --border-radius: 0.6rem;
+  }
+   
+.no-highlight {
+  --highlight-color-focused: ;
+  --background :#F2F0F5;
+    
+     
+}
+.font_black{
+   color: #121217;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, Edge */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* for Internet Explorer and Edge */
+  scrollbar-width: none;     /* for Firefox */
+}
+.text_color {
+  color: #120D1C;
+ }
+ .button_color{
+  --background:#7847EB !important;
+  
+  color: #FAF7FC !important;
+ 
+}
+
+ .p_color{
+  color:#634F96 !important;
+ }
+   .input_style{
+   
+  --highlight-color-focused: none;
+  --highlight-color-invalid: none;
+  --highlight-color-valid: none;
+
+
+   }
+   .custom-input {
+  width: 100%;
+  border-width: 2px;
+  border-color: #d1d5db; /* tailwind border-gray-300 */
+  background-color: #F2F0F5;
+  border-radius: 0.75rem; /* rounded-xl */
+  padding-left: 0.75rem;  /* px-3 = 0.75rem */
+  padding-right: 0.75rem;
+  transition: all 0.2s ease-in-out; /* default Tailwind transition */
+}
+
+/* focus-within styles */
+.custom-input:focus-within {
+  border-color: #6030ff;
+  
+}

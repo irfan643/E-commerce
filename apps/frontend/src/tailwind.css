@@ -1,0 +1,12 @@
+/* @font-face {
+    font-family: 'Manrope';
+    src: url('/src/assets/fonts/Manrope-ExtraLight.ttf') format('truetype');
+}
+@import "tailwindcss";
+
+@theme {
+    --font-Manrope: 'Manrope', sans-serif;
+}
+ :root {
+      --ion-font-family: 'Manrope', sans-serif; 
+    } */

@@ -1,0 +1,34 @@
+{
+  "name": "@connect-cart/db",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "prisma": {
+    "seed": "ts-node --transpile-only prisma/seeds/AdminSeeder.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "push": "prisma push",
+    "migrate": "prisma migrate dev",
+    "build": "tsc -p tsconfig.json",
+    "db:seed": "npx prisma db seed"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "@types/bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0"
+  }
+}

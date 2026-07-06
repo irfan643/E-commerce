@@ -1,0 +1,8 @@
+node_modules
+
+apps/**/dist
+packages/**/dist
+packages/**/generated
+.env
+.turbo
+apps/backend/.env
